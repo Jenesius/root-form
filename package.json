@@ -1,22 +1,24 @@
 {
   "name": "root-form",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
-  "author": "Jenesius",
-  "license": "MIT",
   "main": "index.js",
-  "private": false,
-  "homepage": "https://github.com/Jenesius/form-core#readme",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --config=jest.config.json"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jenesius/form-core.git"
+    "url": "git+https://github.com/Jenesius/root-form.git"
   },
-
+  "author": "",
+  "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Jenesius/form-core/issues"
+    "url": "https://github.com/Jenesius/root-form/issues"
   },
-
+  "homepage": "https://github.com/Jenesius/root-form#readme",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5"
+  }
 }
