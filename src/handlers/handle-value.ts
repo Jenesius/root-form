@@ -1,18 +1,25 @@
 import RootForm from "@/classes/RootForm";
-import FormEvent from "@/classes/form-event";
 import mergeObjects from "@/utils/merge-objects";
 import grandObject from "@/utils/grand-object";
+import FormEventValue from "@/classes/events/FormEventValue";
+import FormEvent from "@/classes/form-event";
+import concatName from "@/utils/concat-name";
 
 
-export default function handleValue(this: RootForm, event: FormEvent) {
+export default function handleValue(this: RootForm, event: FormEventValue) {
 	if (!this.autonomic) return;
-	
 	event.stop();
 	/**
 	 * SOME this.values manipulation
 	 */
 	
-	this.values = mergeObjects(this.values, grandObject(event.data));
+	const path = FormEvent.getPath(this, event)
+	// Строковый путь (разделённый точкой) через который прошёл event до текущей формы.
+	const executedFrom = concatName(...path.reverse().map(item => item.name));
+
+	this.values = mergeObjects(this.values, grandObject({
+		[executedFrom]: event.data
+	}));
 	
 	
 	// 1. getPropFormObject

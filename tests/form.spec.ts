@@ -6,6 +6,58 @@ describe("Form.setValues", () => {
 		const form = new Form();
 		expect(form.values).toEqual({});
 	})
+	test("Setting number", () => {
+		const form = new Form();
+		form.setValues({
+			age: 26
+		})
+		expect(form.values).toEqual({age: 26})
+	})
+	test("Setting string", () => {
+		const form = new Form();
+		form.setValues({
+			name: "Jack"
+		})
+		expect(form.values).toEqual({
+			name: "Jack"
+		})
+	})
+	test("Setting boolean", () => {
+		const form = new Form();
+		form.setValues({
+			hasCar: true
+		})
+		expect(form.values).toEqual({
+			hasCar: true
+		})
+	})
+	test("Setting null", () => {
+		const form = new Form();
+		form.setValues({
+			hasCar: null
+		})
+		expect(form.values).toEqual({
+			hasCar: null
+		})
+	})
+	test("Setting undefined", () => {
+		const form = new Form();
+		form.setValues({
+			test: undefined
+		})
+		expect(form.values).toEqual({
+			test: undefined
+		})
+	})
+	test("Setting array", () => {
+		const form = new Form();
+		form.setValues({
+			points: [1,2,3]
+		})
+		expect(form.values).toEqual({
+			points: [1,2,3]
+		})
+	})
 	test("Execute setValues must insert data inside form.values", () => {
 		const form = new Form();
 		form.setValues({
@@ -140,15 +192,137 @@ describe("Form.setValues", () => {
 			}
 		})
 	})
-	
+	test("Date should not be grand after setting values", () => {
+		const form = new Form();
+		const dateOfBBirth = new Date()
+		const name = "J-e-n-e-s-i-u-s"
+		form.setValues({
+			name,
+			dateOfBBirth
+		})
+		
+		expect(form.values).toEqual({
+			name,
+			dateOfBBirth
+		})
+	})
 	/**
+	 * @description Установка значений в дочерней форме, которая не является автономной, должна полностью
+	 * быть переложена на родительскую форму.
+	 */
+	test("Set values for child form should has effect for parent form.", () => {
+		const parent = new Form({name: 'base'});
+		const child = new Form({
+			name: "user",
+			parent
+		})
+		
+		child.setValues({
+			name: "Jack"
+		})
+		expect(parent.values).toEqual({
+			user: {
+				name: "Jack"
+			}
+		})
+		expect(child.values).toEqual({
+			name: "Jack"
+		})
+	})
+	/**
+	 * @description Сильная вложенность должна нормально отрабатывать при установке значений из дочерних элементов.
+	 */
+	test("Set values for deep child Form should has effect for parent form.", () => {
+		const grandparent = new Form({name: 'base'});
+		const parent = new Form({
+			name: "parent",
+			parent: grandparent
+		})
+		const child = new Form({
+			name: "child",
+			parent: parent
+		})
+		const grandson = new Form({
+			name: "grandson",
+			parent: child
+		})
+		
+		grandson.setValues({
+			name: "Jack"
+		})
+		expect(grandparent.values).toEqual({
+			parent: {
+				child: {
+					grandson: {
+						name: "Jack"
+					}
+				}
+			}
+		})
+		expect(parent.values).toEqual({
+			child: {
+				grandson: {
+					name: "Jack"
+				}
+			}
+		})
+		expect(child.values).toEqual({
+			grandson: {
+				name: "Jack"
+			}
+		})
+		expect(grandson.values).toEqual({
+			name: "Jack"
+		})
+		
+		child.setValues({
+			name: "Bogdan"
+		})
+		
+		expect(grandparent.values).toEqual({
+			parent: {
+				child: {
+					name: "Bogdan",
+					grandson: {
+						name: "Jack"
+					}
+				}
+			}
+		})
+		expect(parent.values).toEqual({
+			child: {
+				name: "Bogdan",
+				grandson: {
+					name: "Jack"
+				}
+			}
+		})
+		expect(child.values).toEqual({
+			name: "Bogdan",
+			grandson: {
+				name: "Jack"
+			}
+		})
+		expect(grandson.values).toEqual({
+			name: "Jack"
+		})
+	})
+	/**
+	 * @description setValues устанавливает значение формы. В таком случае форма не должна находится в статусе changed и
+	 * также не должно быть изменённых полей.
+	 */
 	test("After executing setValues changes must be empty.", () => {
 		const form = new Form();
 		form.setValues({
 			name: 'test'
 		})
 		expect(form.changes).toEqual({})
+		expect(form.changed).toBe(false);
 	})
+	
+	
+	
+	
 	test("Changes should include just field that will be changed.", () => {
 		const form = new Form();
 		form.setValues({
@@ -237,12 +411,14 @@ describe("Form.setValues", () => {
 	})
 		
 	
-	 @description Тест используется для того, чтобы показать суть clean опции вместе с change. Если она указана, значения, которые
-	 не входят в исходный объект - они должны не просто убираться, а замещаться значение cleanValue.
-	 
-	 @explain Если указана опция clean вместе с change, в таком случае происходит полное сравнение переданных значений
-	 со значениями в #values(Pure values). В данном примере в вызове setValues(clean: true) мы игнорируем значения
-	 записанные ранее в changes, а полностью полагаемся на #values.
+	/**
+	 * @description Тест используется для того, чтобы показать суть clean опции вместе с change. Если она указана, значения, которые
+	 * не входят в исходный объект - они должны не просто убираться, а замещаться значение cleanValue.
+	 *
+	 * @explain Если указана опция clean вместе с change, в таком случае происходит полное сравнение переданных значений
+	 * со значениями в #values(Pure values). В данном примере в вызове setValues(clean: true) мы игнорируем значения
+	 * записанные ранее в changes, а полностью полагаемся на #values.
+	 */
 	test("Using clean options all fields that don't consist in changes must be setted to null", () => {
 		const form = new Form();
 		form.setValues({ address: { country: "Belarus" }, name: "Jenesius" });
@@ -384,6 +560,7 @@ describe("Form.setValues", () => {
 	})
 	/**
 	 * @description Тест используется для случая, в котором target ещё не был создан в form.values
+	 */
 	test("Using target for values that not exist in Form's values.", () => {
 		const form = new Form();
 		form.setValues({name: "Jack"}, {target: "application.customer"});
@@ -575,20 +752,7 @@ describe("Form.setValues", () => {
 	})
 	
 	
-	test("Date should not be deep after setting values", () => {
-		const form = new Form();
-		const dateOfBBirth = new Date()
-		const name = "J-e-n-e-s-i-u-s"
-		form.setValues({
-			name,
-			dateOfBBirth
-		})
-		
-		expect(form.values).toEqual({
-			name,
-			dateOfBBirth
-		})
-	})
+	
 	
 	
 	test("Autonomic form: Set values only in children form", () => {
@@ -633,7 +797,8 @@ describe("Form.setValues", () => {
 			}
 		})
 	})
-	test("", () => {
+	
+	test("test", () => {
 		
 		const form = new Form({
 			name: "NewOLApplication"
@@ -669,5 +834,4 @@ describe("Form.setValues", () => {
 		
 		
 	})
-	 */
 })

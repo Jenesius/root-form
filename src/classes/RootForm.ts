@@ -1,17 +1,56 @@
-import {IFormSetValuesOptions, IRootFormOptions} from "../types";
+import {IFormSetValuesOptions, IRootFormOptions, Values} from "../types";
 import FormEvent from "./form-event";
 import DependencyQueue from "./DependencyQueue";
 import handleValue from "@/handlers/handle-value";
+import FormEventValue from "@/classes/events/FormEventValue";
+import getPropFromObject from "@/utils/get-prop-from-object";
+import FormError from "@/classes/errors/FormError";
 
 export default class Form {
 	name?: string
 	parent?: Form
+	private isAutonomic: boolean | undefined
 	get autonomic() {
-		return true;
+		// Если нет родителя
+		// Если есть родитель, но при этом isAutonomic установлен в значение true
+		return !this.parent || this.isAutonomic === true
+	}
+	set autonomic(value: boolean) {
+		this.isAutonomic = value;
 	}
 	
-	values:any = {}
+	#changes = {};
+	get changes(): any {
+		if (!this.parent || this.autonomic) return this.#changes;
+		
+		const parentChanges = this.parent.changes;
+		if (!this.name) throw FormError.FormWithoutName()
+		return getPropFromObject(parentChanges, this.name);
+	}
 	
+	/**
+	 * @description Return true if form includes changes, otherwise false.
+	 * */
+	get changed(): boolean {
+		return !!(
+			(this.changes && Object.keys(this.changes).length !== 0)
+			|| this.dependencies.find(
+				elem =>  (elem instanceof Form && elem.changed)
+			)
+		);
+	}
+	
+	#values = {};
+	set values(newValues: Values) {
+		this.#values = newValues;
+	}
+	get values() {
+		if (this.autonomic) return this.#values;
+		return this.parent?.getValueByName(this.name as string) || {};
+	}
+	getValueByName(name: string) {
+		return getPropFromObject(this.values, name);
+	}
 	constructor(options: IRootFormOptions = {}) {
 		this.name = options.name;
 		this.parent = options.parent;
@@ -29,14 +68,17 @@ export default class Form {
 	}
 	
 	setValues(values: any, options: Partial<IFormSetValuesOptions> = {}): void {
-		const event = FormEvent.createEvent({
-			type: "value",
-			mode: 'bubble',
-			target: this,
-			name: 'value',
-			data: values
-		});
+		const event = new FormEventValue(this, values, options);
 		this.dispatchEvent(event);
+	}
+	/**
+	 * @description Method using for change form's values. Current function is mnemonic for
+	 * *form.setValues(value, {change: true})* and just using for shortest form.
+	 * */
+	change(data: any, options: Partial<Omit<IFormSetValuesOptions, "change">> = {}) {
+		const changeOption: Partial<IFormSetValuesOptions> = options
+		changeOption.change = true;
+		this.setValues(data, changeOption);
 	}
 	
 	dispatchEvent(event: FormEvent) {
@@ -46,7 +88,6 @@ export default class Form {
 		if (FormEvent.mustDispatchContinue(this, event)) return FormEvent.dispatch(this, event);
 	}
 	captureEvent(event: FormEvent) {
-
 		// Выполняем обработчики для события по его name
 		this.emit(event.name, event);
 	}

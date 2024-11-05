@@ -1,9 +1,8 @@
 import RootForm from "./RootForm";
-import {IFormEventCreateOptions, IFormEventMode, IFormEventOptions, IFormEventType} from "../types";
+import {IFormEventCreateOptions, IFormEventMode, IFormEventOptions} from "../types";
 
 export default class FormEvent {
 	name: string
-	type: IFormEventType;
 	mode: IFormEventMode;
 	timestamp: number
 	data: any
@@ -15,18 +14,12 @@ export default class FormEvent {
 	}
 	
 	constructor(options: IFormEventOptions) {
-		this.type = options.type;
 		this.mode = options.mode;
 		this.target = options.target;
 		
 		this.name = options.name;
 		this.timestamp = Date.now();
-	}
-	
-	static createEvent(options: IFormEventCreateOptions): FormEvent {
-		const event = new FormEvent(options);
-		event.data = options.data;
-		return event;
+		this.data = options.data
 	}
 	
 	static mustDispatchContinue(form: RootForm, event: FormEvent) {
@@ -45,6 +38,18 @@ export default class FormEvent {
 		else {
 			source.dependencies.forEach(dep => dep.dispatchEvent(event));
 		}
+	}
+	
+	static getPath(sourceForm: RootForm, event: FormEvent) {
+		const path: RootForm[] = [event.target];
+		let target = event.target;
+		
+		while (target && target.parent && target.parent !== sourceForm) {
+			path.push(target.parent);
+			target = target.parent;
+		}
+		
+		return path;
 	}
 }
 

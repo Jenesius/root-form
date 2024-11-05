@@ -18,22 +18,21 @@ export interface IFormSetValuesOptions {
 }
 
 export interface IFormEventCreateOptions extends IFormEventOptions{
-	data: any
 }
 
 export interface IRootFormOptions {
 	name?: string,
-	parent?: RootForm
+	parent?: RootForm,
+	autonomic?: boolean
 }
 
 export type IFormEventMode = 'bubble' | 'capture'
-export type IFormEventType = 'value'
 
 export interface IFormEventOptions {
 	mode: IFormEventMode,
-	type: IFormEventType,
 	target: RootForm,
-	name: string
+	name: string,
+	data?: any
 }
 
 
