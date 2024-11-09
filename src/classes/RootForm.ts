@@ -1,8 +1,8 @@
-import {IFormSetValuesOptions, IRootFormOptions, Values} from "../types";
-import FormEvent from "./form-event";
+import {IFormSetValuesOptions, IRootFormOptions, IValues} from "../types";
+import FormEvent from "./events/form-event";
 import DependencyQueue from "./DependencyQueue";
 import handleValue from "@/handlers/handle-value";
-import FormEventValue from "@/classes/events/FormEventValue";
+import FormEventValue from "@/classes/events/form-event-value";
 import getPropFromObject from "@/utils/get-prop-from-object";
 import FormError from "@/classes/errors/FormError";
 
@@ -41,7 +41,7 @@ export default class Form {
 	}
 	
 	#values = {};
-	set values(newValues: Values) {
+	set values(newValues: IValues) {
 		this.#values = newValues;
 	}
 	get values() {

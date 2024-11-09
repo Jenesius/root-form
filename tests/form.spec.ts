@@ -319,6 +319,59 @@ describe("Form.setValues", () => {
 		expect(form.changes).toEqual({})
 		expect(form.changed).toBe(false);
 	})
+	/**
+	 * @description Значение clean должно полностью перезаписывать целевые значения.
+	 */
+	test("Should fully override values if clean's option provided,", () => {
+		const form = new Form();
+		const ADDRESS_CODE = 123456;
+		form.setValues({ address: { city: "Berlin" } })
+		form.setValues({ address: { code: ADDRESS_CODE } }, {clean: true})
+		expect(form.values).toEqual({ address: { code: ADDRESS_CODE } })
+	})
+	test("Using clean option for simple value", () => {
+		const form = new Form();
+		form.setValues({
+			name: "Jack"
+		})
+		form.setValues({age: 24}, {clean: true});
+		expect(form.values).toEqual({age: 24})
+	})
+	test("Using clean options, the result values should be equal to provided values", () => {
+		const form = new Form();
+		form.setValues({
+			address: {
+				city: "Berlin",
+				country: {code: 1}
+			},
+			name: "Jack"
+		})
+		form.setValues({address: {}}, {clean: true});
+		expect(form.values).toEqual({address: {}})
+	})
+	test("Only child values should be cleaned after using clean option on child element.", () => {
+		const form = new Form();
+		const childForm = new Form({
+			name: "address"
+		})
+		const COUNTRY_CODE = 123, NAME = "JACK";
+		
+		form.subscribe(childForm);
+		form.setValues({ address: { country: { name: "German" }, test: 1 }, name: NAME })
+		childForm.setValues({ country: { code: COUNTRY_CODE } }, {clean: true})
+		expect(form.values).toEqual({ address: { country: { code: COUNTRY_CODE } }, name: NAME })
+	})
+	test("Clean without change", () => {
+		const form = new Form();
+		form.setValues({ address: { city: 1, country: 2 } , name: "Jack"});
+		form.setValues({ 'address.index': 123 }, {clean: true});
+		expect(form.values).toEqual({
+			address: {
+				index: 123
+			}
+		})
+	})
+	
 	
 	
 	
@@ -361,13 +414,7 @@ describe("Form.setValues", () => {
 		})
 	})
 	
-	test("Should clean value if clean options is provided", () => {
-		const form = new Form();
-		const ADDRESS_CODE = 123456;
-		form.setValues({ address: { city: "Berlin" } })
-		form.setValues({ address: { code: ADDRESS_CODE } }, {clean: true})
-		expect(form.values).toEqual({ address: { code: ADDRESS_CODE } })
-	})
+	
 	test("After treating changes, the data should mixed with values", () => {
 		const form = new Form();
 		form.setValues({ address: { country: "Belarus" } })
@@ -377,38 +424,9 @@ describe("Form.setValues", () => {
 		expect(form.changes).toEqual({ address: { city: "Mogilev" } });
 	})
 
-	test("Using clean option for simple value", () => {
-		const form = new Form();
-		form.setValues({
-			name: "Jack"
-		})
-		form.setValues({age: 24}, {clean: true});
-		expect(form.values).toEqual({age: 24})
-	})
-	test("Using clean options, the result values should be equal to provided values", () => {
-		const form = new Form();
-		form.setValues({
-			address: {
-				city: "Berlin",
-				country: {code: 1}
-			},
-			name: "Jack"
-		})
-		form.setValues({address: {}}, {clean: true});
-		expect(form.values).toEqual({address: {}})
-	})
-	test("Only child values should be cleaned after using clean option on child element.", () => {
-		const form = new Form();
-		const childForm = new Form({
-			name: "address"
-		})
-		const COUNTRY_CODE = 123, NAME = "JACK";
-		
-		form.subscribe(childForm);
-		form.setValues({ address: { country: { name: "German" }, test: 1 }, name: NAME })
-		childForm.setValues({ country: { code: COUNTRY_CODE } }, {clean: true})
-		expect(form.values).toEqual({ address: { country: { code: COUNTRY_CODE } }, name: NAME })
-	})
+
+	
+
 		
 	
 	/**
@@ -451,16 +469,7 @@ describe("Form.setValues", () => {
 		})
 		
 	})
-	test("Clean without change", () => {
-		const form = new Form();
-		form.setValues({ address: { city: 1, country: 2 } , name: "Jack"});
-		form.setValues({ 'address.index': 123 }, {clean: true});
-		expect(form.values).toEqual({
-			address: {
-				index: 123
-			}
-		})
-	})
+
 	test("Simple rewrite changes", () => {
 		const form = new Form();
 		form.setValues({name: "Jenesius"});

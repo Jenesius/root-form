@@ -1,6 +1,7 @@
 import concatName from "./concat-name";
 import isIterablePoint from "./is-iterable-point";
 import splitName from "./split-name";
+import isEmptyObject from "@/utils/is-empty-object";
 
 /**
  * @description Функция проходит по всем конечным элементам объекта.
@@ -27,28 +28,34 @@ export default function bypassObject(object: any): BypassItem[] {
 	return array
 }
 
-function step(array: BypassItem[], value: any, path: string[] = []): void {
-	if (!isIterablePoint(value)) return;
+/**
+ *
+ * @param array
+ * @param sourceValue Исходное значение, для которого выполняет процесс прохода.
+ * @param parentPath Массив составных имен к которым относится данное поле(на текущем шаге)
+ */
+function step(array: BypassItem[], sourceValue: any, parentPath: string[] = []): void {
+	// Если с самого начала нам пришло простое значение - сразу выходим
+	if (!isIterablePoint(sourceValue) ) return;
 	
-	Object.keys(value)
+	Object.keys(sourceValue)
 	.forEach(key => {
 
 		const parsedKey = splitName(key);
 		
-		const p = [...path, ...parsedKey]; // Step path
-		const v = value[key];	  // Step value
+		const path = [...parentPath, ...parsedKey]; // Step path
+		const value = sourceValue[key];	  // Step value
 		
-		if (!isIterablePoint(v)) {
+		if (!isIterablePoint(value)) {
 			array.push({
-				path: p,
-				value: v,
-				name: concatName(...p),
-				set: (newValue) => value[key] = newValue
+				path,
+				value: value,
+				name: concatName(...path),
+				set: (newValue) => sourceValue[key] = newValue
 			})
 			return;
 		}
-
-		step(array, v, p)
+		step(array, value, path)
 	})
 }
 

@@ -36,6 +36,6 @@ export interface IFormEventOptions {
 }
 
 
-export interface Values {
+export interface IValues {
 	[name: string]: any
 }

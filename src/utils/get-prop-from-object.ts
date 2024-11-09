@@ -3,7 +3,7 @@
  * @description Функция возвращает значение по имени. Имя может быть составным.
  * Если имя не было найдёно - вернёт undefined
  * */
-import {Values} from "@/types";
+import {IValues} from "@/types";
 
 
 export default function getPropFromObject(obj: unknown, name: string) : any{

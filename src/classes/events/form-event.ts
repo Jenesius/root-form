@@ -1,11 +1,10 @@
-import RootForm from "./RootForm";
-import {IFormEventCreateOptions, IFormEventMode, IFormEventOptions} from "../types";
+import RootForm from "../RootForm";
+import {IFormEventMode, IFormEventOptions} from "@/types";
 
 export default class FormEvent {
 	name: string
 	mode: IFormEventMode;
 	timestamp: number
-	data: any
 	target: RootForm
 	stopped: boolean = false;
 	
@@ -19,7 +18,6 @@ export default class FormEvent {
 		
 		this.name = options.name;
 		this.timestamp = Date.now();
-		this.data = options.data
 	}
 	
 	static mustDispatchContinue(form: RootForm, event: FormEvent) {

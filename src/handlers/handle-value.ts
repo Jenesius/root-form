@@ -1,9 +1,6 @@
 import RootForm from "@/classes/RootForm";
-import mergeObjects from "@/utils/merge-objects";
-import grandObject from "@/utils/grand-object";
-import FormEventValue from "@/classes/events/FormEventValue";
-import FormEvent from "@/classes/form-event";
-import concatName from "@/utils/concat-name";
+import FormEventValue from "@/classes/events/form-event-value";
+import * as console from "node:console";
 
 
 export default function handleValue(this: RootForm, event: FormEventValue) {
@@ -13,14 +10,16 @@ export default function handleValue(this: RootForm, event: FormEventValue) {
 	 * SOME this.values manipulation
 	 */
 	
-	const path = FormEvent.getPath(this, event)
-	// Строковый путь (разделённый точкой) через который прошёл event до текущей формы.
-	const executedFrom = concatName(...path.reverse().map(item => item.name));
-
+	const compareResult = event.getCompareResult(this);
+	
+	console.log(this.values)
+	/*
 	this.values = mergeObjects(this.values, grandObject({
 		[executedFrom]: event.data
 	}));
 	
+	
+	 */
 	
 	// 1. getPropFormObject
 	// 2. insertPropInObject
