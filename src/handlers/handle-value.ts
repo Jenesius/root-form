@@ -1,6 +1,5 @@
 import RootForm from "@/classes/RootForm";
 import FormEventValue from "@/classes/events/form-event-value";
-import * as console from "node:console";
 
 
 export default function handleValue(this: RootForm, event: FormEventValue) {
@@ -12,7 +11,6 @@ export default function handleValue(this: RootForm, event: FormEventValue) {
 	
 	const compareResult = event.getCompareResult(this);
 	
-	console.log(this.values)
 	/*
 	this.values = mergeObjects(this.values, grandObject({
 		[executedFrom]: event.data

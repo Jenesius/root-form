@@ -371,7 +371,18 @@ describe("Form.setValues", () => {
 			}
 		})
 	})
-	
+	/**
+	 * @description Установка значения должно также анализировать и изменения. Если при установке значения в поле "A",
+	 * ранее в нём были изменения, то изменения необходимо очистить
+	 */
+	test("Using change:true and after setValues, the name that provided in second setValues must clean 'changed' status field to false", () => {
+		const form = new Form();
+		form.setValues({name: "Jenesius"});
+		form.setValues({name: "Bur"}, {change: true} );
+		expect(form.changes).toEqual({name: "Bur"});
+		form.setValues({name: "Burdin"});
+		expect(form.changes).toEqual({});
+	})
 	
 	
 	
@@ -413,8 +424,27 @@ describe("Form.setValues", () => {
 			login: "test"
 		})
 	})
-	
-	
+	test("If the values in changes and pureValues match, the first should be adjusted", () => {
+		const form = new Form();
+		form.setValues( { name: "Jenesius" } )
+		form.change({ name: "Jenesius" })
+		expect(form.changes).toEqual({})
+		expect(form.values).toEqual({ name: "Jenesius" })
+	})
+	test("When using clean and change, we must override the set values, not just remove them", () => {
+		const form = new Form();
+		form.setValues( { name: "Jenesius", age: 26 } )
+		form.setValues({}, {clean: true, change: true})
+		expect(form.changes).toEqual({ name: undefined, age: undefined })
+		expect(form.values).toEqual({ name: undefined, age: undefined })
+	})
+	test("If the values in changes and pureValues match (also with clean options), the first should be adjusted", () => {
+		const form = new Form();
+		form.setValues( { address: { city: "Berlin" } } )
+		form.setValues({ address: { city: "Berlin" } }, { clean: true, change: true })
+		expect(form.changes).toEqual({})
+		expect(form.values).toEqual({ name: "Jenesius" })
+	})
 	test("After treating changes, the data should mixed with values", () => {
 		const form = new Form();
 		form.setValues({ address: { country: "Belarus" } })
@@ -646,14 +676,7 @@ describe("Form.setValues", () => {
 		expect(form.values).toEqual({ address: { city: "Mogilev", country: "Belarus" }, name: "Jenesius" });
 	})
 
-	test("Using change:true and after setValues, the name that provided in second setValues must clean 'changed' status field to false", () => {
-		const form = new Form();
-		form.setValues({name: "Jenesius"});
-		form.setValues({name: "Bur"}, {change: true} );
-		expect(form.changes).toEqual({name: "Bur"});
-		form.setValues({name: "Burdin"});
-		expect(form.changes).toEqual({});
-	})
+
 	test("Using change:true for rewriting null value", () => {
 		const form = new Form();
 		form.setValues({address: {city: null, index: 0}, a: "a"});

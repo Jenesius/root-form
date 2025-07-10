@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --config=jest.config.json",
-    "sandbox": "node --import tsx src/test.ts"
+    "sandbox": "node --import tsx src/sandbox.ts"
   },
   "repository": {
     "type": "git",

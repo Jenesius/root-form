@@ -4,17 +4,17 @@ import {IFormSetValuesOptions, IValues} from "@/types";
 import grandObject from "@/utils/grand-object";
 import concatName from "@/utils/concat-name";
 import getPropFromObject from "@/utils/get-prop-from-object";
-import {compareDifference, compareMergeChanges} from "@/utils/compare-changes";
 import bypassObject from "@/utils/bypass-object";
 import copyObject from "@/utils/copy-object";
 import insertByName from "@/utils/insert-by-name";
-import * as console from "node:console";
-import isEmptyObject from "@/utils/is-empty-object";
 import mergeObjects from "@/utils/merge-objects";
-import hasNameInObject from "@/utils/has-name-in-object";
 import isIterablePoint from "@/utils/is-iterable-point";
+import * as console from "node:console";
+import hasNameInObject from "@/utils/has-name-in-object";
+import deleteByName from "@/utils/delete-by-name";
 
 export default class FormEventValue extends FormEvent {
+	
 	#values: IValues = {};
 	
 	private set values(data: any) {
@@ -55,20 +55,52 @@ export default class FormEventValue extends FormEvent {
 		const sourceName = FormEventValue.getSourceName(this, form);
 		
 		const projectionOfChanges = bypassObject(this.values);
-		const oldValues = copyObject(this.values);
+		const oldFormValues = copyObject(form.values);
+		const fieldsForCheck = new Set<string>()
+		
+		
+		
+		const event = this;
+		const test = {
+			get value() {
+				return event.options.change ? form.changes : form.pureValues
+			},
+			set: (v: any) => {
+				if (this.options.change) form.changes = v;
+				else form.pureValues = v
+			}
+		}
+		
+		
 		
 		// Очистка значений
 		if (this.options.clean) {
-			sourceName ? insertByName(form.values, sourceName, {}) : form.values = {};
+			sourceName ? insertByName(test.value, sourceName, {}) : test.set({});
 		}
-		// Подготовка для сливания. Если нет объект в который будем сливать значения - его необходимо создать
-		if (!!sourceName && (!hasNameInObject(form.values, sourceName) || !isIterablePoint(getPropFromObject(form.values, sourceName))))
-			insertByName(form.values, sourceName, {});
 		
-		const sourceValues = sourceName ? getPropFromObject(form.values, sourceName) : form.values;
+		// Подготовка для сливания. Если нет объект в который будем сливать значения - его необходимо создать
+		if (sourceName && !isIterablePoint(getPropFromObject(test.value, sourceName)))
+			insertByName(test.value, sourceName, {});
+		
+		
+		const sourceValues = sourceName ? getPropFromObject(test.value, sourceName) : test.value;
 		mergeObjects(sourceValues, this.values);
 		
+		{
+			if ( !this.options.change ) {
+				const projection = bypassObject(this.values);
+				console.log(projection);
+				projection.forEach(elem => deleteByName(form.changes, concatName(sourceName, elem.name)))
+			}
+		}
 		
+		console.log("Changes", form.changes);
+		console.log("Values", form.values);
+		console.log("PureValues", form.pureValues)
+		
+		// понять, что изменилось
+		// можно пройтись по всем полями из this.values и затем их проверить
+		// Но в случае с options.clean нужно и все поля, которые были в очистке
 		
 	}
 	/**

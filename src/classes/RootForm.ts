@@ -5,8 +5,41 @@ import handleValue from "@/handlers/handle-value";
 import FormEventValue from "@/classes/events/form-event-value";
 import getPropFromObject from "@/utils/get-prop-from-object";
 import FormError from "@/classes/errors/FormError";
+import mergeObjects from "@/utils/merge-objects";
+import * as console from "node:console";
 
 export default class Form {
+	#changes = {};
+	get changes(): any {
+		if (this.autonomic) return this.#changes;
+		
+		const parentChanges = this.parent?.changes;
+		if (!this.name) throw FormError.FormWithoutName()
+		return getPropFromObject(parentChanges, this.name);
+	}
+	set changes(v: any) {
+		this.#changes = v;
+	}
+	
+	#values = {}
+	set values(newValues: IValues) {
+		this.#values = newValues;
+	}
+	get values(): any {
+		if (this.autonomic) return mergeObjects({}, this.#values, this.#changes);
+		return this.parent?.getValueByName(this.name as string) || {};
+	};
+	/**
+	 * @description Чистые значения формы. Которые изменяются при помощи setValues без опции change.
+	 * */
+	get pureValues():any {
+		if (this.autonomic) return this.#values;
+		return getPropFromObject(this.parent?.pureValues, this.name as string) || {}
+	}
+	set pureValues(pureValues: IValues) {
+		this.#values = pureValues;
+	}
+	
 	name?: string
 	parent?: Form
 	private isAutonomic: boolean | undefined
@@ -19,14 +52,7 @@ export default class Form {
 		this.isAutonomic = value;
 	}
 	
-	#changes = {};
-	get changes(): any {
-		if (!this.parent || this.autonomic) return this.#changes;
-		
-		const parentChanges = this.parent.changes;
-		if (!this.name) throw FormError.FormWithoutName()
-		return getPropFromObject(parentChanges, this.name);
-	}
+
 	
 	/**
 	 * @description Return true if form includes changes, otherwise false.
@@ -40,14 +66,8 @@ export default class Form {
 		);
 	}
 	
-	#values = {};
-	set values(newValues: IValues) {
-		this.#values = newValues;
-	}
-	get values() {
-		if (this.autonomic) return this.#values;
-		return this.parent?.getValueByName(this.name as string) || {};
-	}
+
+
 	getValueByName(name: string) {
 		return getPropFromObject(this.values, name);
 	}
